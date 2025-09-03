@@ -7,8 +7,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "cdk": "cdk",
-    "synth": "npm run build && npx cdk synth",
-    "deploy": "npm run build && npx cdk deploy --require-approval never",
+    "synth": "pnpm run build && npx cdk synth",
+    "deploy": "pnpm run build && npx cdk deploy --require-approval never",
     "destroy": "npx cdk destroy --force"
   },
   "devDependencies": {
