@@ -1,0 +1,188 @@
+name: "ECS Preview Environments"
+description: "Create/Update/Teardown ephemeral ECS Fargate preview environments with FE+BE, ALB host+path rules, and Route53 DNS."
+author: "Mr. Dibre <cesar.felp982@gmail.com>"
+branding:
+  icon: "cloud"
+  color: "blue"
+
+inputs:
+  state:
+    description: "upsert | teardown"
+    required: true
+  aws-region:
+    description: "AWS region (e.g., us-west-2)"
+    required: true
+  role-to-assume:
+    description: "IAM Role ARN for OIDC (aws-actions/configure-aws-credentials)"
+    required: true
+
+  # Core infra
+  cluster-name:
+    description: "ECS Cluster name"
+    required: true
+  alb-listener-https-arn:
+    description: "ALB HTTPS listener ARN (443)"
+    required: true
+  hosted-zone-id:
+    description: "Route53 Hosted Zone ID"
+    required: true
+  domain:
+    description: "Base domain (e.g., example.com)"
+    required: true
+  service-prefix:
+    description: "Service name prefix (e.g., preview-pr-)"
+    default: "preview-pr-"
+    required: false
+
+  # FE/BE build & images
+  ecr-repo-frontend:
+    description: "ECR repo for FE image (e.g., org/web-frontend)"
+    required: true
+  ecr-repo-backend:
+    description: "ECR repo for BE image (e.g., org/web-backend)"
+    required: true
+  frontend-dockerfile:
+    description: "Path to frontend Dockerfile"
+    default: "./frontend/Dockerfile"
+    required: false
+  backend-dockerfile:
+    description: "Path to backend Dockerfile"
+    default: "./backend/Dockerfile"
+    required: false
+
+  # FE/BE container/ports
+  frontend-container-name:
+    description: "Container name for FE"
+    default: "web-frontend"
+    required: false
+  backend-container-name:
+    description: "Container name for BE"
+    default: "web-backend"
+    required: false
+  frontend-port:
+    description: "Frontend container port"
+    default: "80"
+    required: false
+  backend-port:
+    description: "Backend container port"
+    default: "80"
+    required: false
+  api-path-prefix:
+    description: "API path prefix for BE rule"
+    default: "/api/*"
+    required: false
+
+  # Task sizing
+  cpu:
+    description: "Task CPU units (e.g., 256, 512)"
+    default: "512"
+    required: false
+  memory:
+    description: "Task Memory MiB (e.g., 1024)"
+    default: "1024"
+    required: false
+
+  # Networking
+  subnet-ids:
+    description: "CSV of subnet IDs (leave empty to auto-pick default VPC public subnets)"
+    required: false
+  security-group-ids:
+    description: "CSV of SG IDs (optional; empty = none)"
+    required: false
+  assign-public-ip:
+    description: "ENABLED | DISABLED (default ENABLED for NAT-less public subnets)"
+    default: "ENABLED"
+    required: false
+
+  # PR metadata (pass from caller)
+  pr-number:
+    description: "PR number (required for deterministic names/host)"
+    required: true
+  git-sha:
+    description: "Commit SHA for image tagging"
+    required: true
+
+  # Optional ENV for containers
+  backend-env-json:
+    description: "JSON array of {name,value} for backend container environment"
+    default: "[]"
+    required: false
+  frontend-env-json:
+    description: "JSON array of {name,value} for frontend container environment"
+    default: "[]"
+    required: false
+
+outputs:
+  preview-url:
+    description: "Preview base URL (https://pr-<number>.<domain>)"
+    value: ${{ steps.outputs-step.outputs.preview-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout (needed for Docker builds)
+      uses: actions/checkout@v4
+      if: inputs.state == 'upsert'
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Upsert Preview (FE+BE)
+      if: inputs.state == 'upsert'
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        CLUSTER_NAME: ${{ inputs.cluster-name }}
+        LISTENER_ARN: ${{ inputs.alb-listener-https-arn }}
+        HOSTED_ZONE_ID: ${{ inputs.hosted-zone-id }}
+        DOMAIN: ${{ inputs.domain }}
+        SERVICE_PREFIX: ${{ inputs.service-prefix }}
+        PR: ${{ inputs.pr-number }}
+        GIT_SHA: ${{ inputs.git-sha }}
+
+        ECR_REPO_FE: ${{ inputs.ecr-repo-frontend }}
+        ECR_REPO_BE: ${{ inputs.ecr-repo-backend }}
+        DOCKERFILE_FE: ${{ inputs.frontend-dockerfile }}
+        DOCKERFILE_BE: ${{ inputs.backend-dockerfile }}
+
+        FE_NAME: ${{ inputs.frontend-container-name }}
+        BE_NAME: ${{ inputs.backend-container-name }}
+        FE_PORT: ${{ inputs.frontend-port }}
+        BE_PORT: ${{ inputs.backend-port }}
+        API_PREFIX: ${{ inputs.api-path-prefix }}
+
+        CPU: ${{ inputs.cpu }}
+        MEMORY: ${{ inputs.memory }}
+        SUBNET_IDS: ${{ inputs.subnet-ids }}
+        SECURITY_GROUP_IDS: ${{ inputs.security-group-ids }}
+        ASSIGN_PUBLIC_IP: ${{ inputs.assign-public-ip }}
+
+        BACKEND_ENV_JSON: ${{ inputs.backend-env-json }}
+        FRONTEND_ENV_JSON: ${{ inputs.frontend-env-json }}
+      run: bash "${GITHUB_ACTION_PATH}/scripts/upsert.sh"
+
+    - name: Teardown Preview
+      if: inputs.state == 'teardown'
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        CLUSTER_NAME: ${{ inputs.cluster-name }}
+        LISTENER_ARN: ${{ inputs.alb-listener-https-arn }}
+        HOSTED_ZONE_ID: ${{ inputs.hosted-zone-id }}
+        DOMAIN: ${{ inputs.domain }}
+        SERVICE_PREFIX: ${{ inputs.service-prefix }}
+        PR: ${{ inputs.pr-number }}
+      run: bash "${GITHUB_ACTION_PATH}/scripts/teardown.sh"
+
+    - id: outputs-step
+      name: Set outputs
+      if: inputs.state == 'upsert'
+      shell: bash
+      run: |
+        echo "preview-url=https://pr-${PR}.${DOMAIN}" >> "$GITHUB_OUTPUT"
