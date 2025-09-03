@@ -114,6 +114,7 @@ jobs:
       - name: Install CDK app deps
         run: |
           pnpm install
+          pnpm install -g aws-cdk
           npx cdk --version
 
       - name: Resolve image tags from branches
@@ -161,7 +162,7 @@ jobs:
       - name: Deploy (Upsert) with CDK
         if: inputs.state == 'upsert'
         run: |
-          cdk deploy Preview-${{ env.PREVIEW_ID }} \
+          npx cdk deploy Preview-${{ env.PREVIEW_ID }} \
             -c previewId=${{ env.PREVIEW_ID }} \
             -c clusterArn='${{ inputs.cluster_arn }}' \
             -c albListenerArn='${{ inputs.alb_listener_https_arn }}' \
