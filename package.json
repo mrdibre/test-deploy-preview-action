@@ -1,5 +1,6 @@
 {
   "name": "ecs-preview-cdk",
+  "description": "Testing PR ephemeral environments with AWS CDK",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
