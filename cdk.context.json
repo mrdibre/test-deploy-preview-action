@@ -1,0 +1,99 @@
+{
+  "vpc-provider:account=654654469708:filter.isDefault=true:region=us-west-2:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0ba1a24995b2ed6ae",
+    "vpcCidrBlock": "172.31.0.0/16",
+    "ownerAccountId": "654654469708",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0b38a1745f3deb062",
+            "cidr": "172.31.32.0/20",
+            "availabilityZone": "us-west-2a",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          },
+          {
+            "subnetId": "subnet-0ad7da796a90dce45",
+            "cidr": "172.31.16.0/20",
+            "availabilityZone": "us-west-2b",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          },
+          {
+            "subnetId": "subnet-0d1dd897250ed0bc2",
+            "cidr": "172.31.0.0/20",
+            "availabilityZone": "us-west-2c",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          },
+          {
+            "subnetId": "subnet-0b316d17fb1fce160",
+            "cidr": "172.31.48.0/20",
+            "availabilityZone": "us-west-2d",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          }
+        ]
+      }
+    ]
+  },
+  "load-balancer-listener:account=654654469708:listenerArn=arn$:aws$:elasticloadbalancing$:us-west-2$:654654469708$:listener/app/test-preview/d4f4384d24105f76/b6f473ec1f2285c9:loadBalancerType=application:region=us-west-2": {
+    "listenerArn": "arn:aws:elasticloadbalancing:us-west-2:654654469708:listener/app/test-preview/d4f4384d24105f76/b6f473ec1f2285c9",
+    "listenerPort": 443,
+    "securityGroupIds": [
+      "sg-0004b93f056c8b3bc"
+    ]
+  },
+  "security-group:account=654654469708:region=us-west-2:securityGroupId=sg-0004b93f056c8b3bc": {
+    "securityGroupId": "sg-0004b93f056c8b3bc",
+    "allowAllOutbound": false
+  },
+  "load-balancer:account=654654469708:loadBalancerArn=arn$:aws$:elasticloadbalancing$:us-west-2$:654654469708$:loadbalancer/app/test-preview/d4f4384d24105f76:loadBalancerType=application:region=us-west-2": {
+    "loadBalancerArn": "arn:aws:elasticloadbalancing:us-west-2:654654469708:loadbalancer/app/test-preview/d4f4384d24105f76",
+    "loadBalancerCanonicalHostedZoneId": "Z1H1FL5HABSF5",
+    "loadBalancerDnsName": "test-preview-919590800.us-west-2.elb.amazonaws.com",
+    "vpcId": "vpc-0ba1a24995b2ed6ae",
+    "securityGroupIds": [
+      "sg-0004b93f056c8b3bc"
+    ],
+    "ipAddressType": "ipv4"
+  },
+  "vpc-provider:account=654654469708:filter.vpc-id=vpc-0ba1a24995b2ed6ae:region=us-west-2:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0ba1a24995b2ed6ae",
+    "vpcCidrBlock": "172.31.0.0/16",
+    "ownerAccountId": "654654469708",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0b38a1745f3deb062",
+            "cidr": "172.31.32.0/20",
+            "availabilityZone": "us-west-2a",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          },
+          {
+            "subnetId": "subnet-0ad7da796a90dce45",
+            "cidr": "172.31.16.0/20",
+            "availabilityZone": "us-west-2b",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          },
+          {
+            "subnetId": "subnet-0d1dd897250ed0bc2",
+            "cidr": "172.31.0.0/20",
+            "availabilityZone": "us-west-2c",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          },
+          {
+            "subnetId": "subnet-0b316d17fb1fce160",
+            "cidr": "172.31.48.0/20",
+            "availabilityZone": "us-west-2d",
+            "routeTableId": "rtb-017c83f4bb58f2a6f"
+          }
+        ]
+      }
+    ]
+  }
+}

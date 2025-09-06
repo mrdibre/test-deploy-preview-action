@@ -9,7 +9,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 
-export interface PreviewEnvProps {
+export interface PreviewEnvProps extends cdk.StackProps {
   previewId: string;
   clusterArn: string;
   albListenerArn: string;
@@ -34,8 +34,8 @@ export interface PreviewEnvProps {
 }
 
 export class PreviewEnvStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: PreviewEnvProps) {
-    super(scope, id);
+  constructor(scope: Construct, id: string, { env, ...props }: PreviewEnvProps) {
+    super(scope, id, { env });
 
     // Hostname do preview
     const host = `${props.previewId}.${props.domain}`;
@@ -47,18 +47,16 @@ export class PreviewEnvStack extends cdk.Stack {
     const cluster = ecs.Cluster.fromClusterAttributes(this, 'Cluster', {
       clusterArn: props.clusterArn,
       vpc,
-      securityGroups: []
+      clusterName: cdk.Fn.select(1, cdk.Fn.split('/', props.clusterArn))
     });
 
     // Importa listener + ALB
-    const listener = elbv2.ApplicationListener.fromApplicationListenerAttributes(this, 'HttpsListener', {
-      listenerArn: props.albListenerArn,
-      securityGroup: undefined
+    const listener = elbv2.ApplicationListener.fromLookup(this, 'HttpsListener', {
+      listenerArn: props.albListenerArn
     });
-    const lbArn = cdk.Fn.select(0, cdk.Fn.split('/listener/', props.albListenerArn)); // pega arn do ALB a partir do arn do listener
-    const alb = elbv2.ApplicationLoadBalancer.fromApplicationLoadBalancerAttributes(this, 'ALB', {
-      loadBalancerArn: lbArn,
-      securityGroupId: '' // não é necessário para alias
+
+    const alb = elbv2.ApplicationLoadBalancer.fromLookup(this, 'ALB', {
+      loadBalancerArn: "arn:aws:elasticloadbalancing:us-west-2:654654469708:loadbalancer/app/test-preview/d4f4384d24105f76",
     });
 
     // DNS
@@ -108,14 +106,18 @@ export class PreviewEnvStack extends cdk.Stack {
       logging: ecs.LogDrivers.awsLogs({ logGroup, streamPrefix: `fe-${props.previewId}` }),
       essential: true
     });
-    fe.addPortMappings({ containerPort: props.frontendPort });
+    fe.addPortMappings({ 
+      containerPort: props.frontendPort
+    });
 
     const be = task.addContainer('Backend', {
       image: beImage,
       logging: ecs.LogDrivers.awsLogs({ logGroup, streamPrefix: `be-${props.previewId}` }),
       essential: true
     });
-    be.addPortMappings({ containerPort: props.backendPort });
+    be.addPortMappings({ 
+      containerPort: props.backendPort
+    });
 
     // Subnets & SGs
     const vpcSubnets = this.resolveSubnets(vpc, props.subnetIdsCsv);

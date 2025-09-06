@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "cdk": "cdk",
+    "cdk": "cdk --profile playground",
     "synth": "pnpm run build && npx cdk synth",
     "deploy": "pnpm run build && npx cdk deploy --require-approval never",
     "destroy": "npx cdk destroy --force"

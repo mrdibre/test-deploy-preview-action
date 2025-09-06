@@ -4,7 +4,6 @@ import { PreviewEnvStack } from '../lib/preview-env-stack';
 
 const app = new cdk.App();
 
-// Inputs via context (-c key=value)
 const previewId = app.node.getContext('previewId') as string;
 const clusterArn = app.node.getContext('clusterArn') as string;
 const albListenerArn = app.node.getContext('albListenerArn') as string;
@@ -44,5 +43,10 @@ new PreviewEnvStack(app, `Preview-${previewId}`, {
   backendHealthPath,
   subnetIdsCsv,
   securityGroupIdsCsv,
-  assignPublicIp
+  assignPublicIp,
+
+  env: {
+    account: "654654469708",
+    region: "us-west-2"
+  }
 });

@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts apps/api.ts",
+  "app": "npx ts-node --prefer-ts-exts src/app.ts",
   "build": "pnpm build",
   "watch": {
     "include": ["**"],
